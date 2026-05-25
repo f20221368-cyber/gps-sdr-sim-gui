@@ -1,0 +1,21 @@
+appId: com.aura.gpssim
+productName: GPS-SDR-SIM Controller
+directories:
+  output: dist_electron
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+  - gps-sdr-sim/gps-sdr-sim.exe
+  - GPS_L1CA/**/*
+extraResources:
+  - from: temp
+    to: temp
+    filter:
+      - "!**/*"
+win:
+  target: nsis
+  icon: public/vite.svg
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

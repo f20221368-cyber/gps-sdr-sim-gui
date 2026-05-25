@@ -1,0 +1,43 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\pocket_trk",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\fftw_wisdom",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\pocket_trk",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\pocket_trk",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "d:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk",
+            "binaryPath": "d:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\pocket_trk",
+            "binaryArgs": []
+        }
+    ],
+    "makefile.makefilePath": "D:\\POCKET_SDR\\PocketSDR-16_bit_final_rghav\\PocketSDR-16_bit\\app\\pocket_trk\\makefile",
+    "makefile.makePath": "C:\\msys64\\usr\\bin\\make.exe",
+    "files.associations": {
+        "pocket_sdr.h": "c",
+        "signal.h": "c",
+        "string.h": "c",
+        "rtklib.h": "c",
+        "cstdlib": "c"
+    }
+}

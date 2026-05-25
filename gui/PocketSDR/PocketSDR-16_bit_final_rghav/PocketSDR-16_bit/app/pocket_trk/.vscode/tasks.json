@@ -1,0 +1,41 @@
+// {
+//     "version": "2.0.0",
+//     "tasks": [
+//         {
+//             "label": "Build with Make",
+//             "type": "shell",
+//             "command": "make",
+//             "args": ["-f", "D:/POCKET_SDR/PocketSDR-16_bit/PocketSDR-16_bit/app/pocket_trk/makefile"],
+//             "group": {
+//                 "kind": "build",
+//                 "isDefault": true
+//             },
+//             "problemMatcher": [],
+//             "detail": "Build using make"
+//         }
+//     ]
+// }
+
+
+
+
+
+
+
+
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "build",
+            "command": "make D:/POCKET_SDR/PocketSDR-16_bit_final_rghav/PocketSDR-16_bit/app/pocket_trk/makefile",
+            "args": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+        }
+    ],
+    "version": "2.0.0"
+}
