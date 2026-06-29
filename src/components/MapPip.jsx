@@ -10,7 +10,8 @@ const MapPip = ({
     isDrawing, 
     onDrawingFinished,
     simulationTime,
-    rinexPath
+    rinexPath,
+    forceSkyView = false
 }) => {
     const [pipView, setPipView] = useState('map');
     const [isMaximized, setIsMaximized] = useState(false);
@@ -102,6 +103,29 @@ const MapPip = ({
         </div>
     );
 
+    useEffect(() => {
+        if (forceSkyView) {
+            fetchSatData();
+            const fallbackInterval = setInterval(fetchSatData, 5000);
+            return () => clearInterval(fallbackInterval);
+        }
+    }, [forceSkyView, simulatedLocation, selectedLocation, simulationTime]);
+
+    if (forceSkyView) {
+        return (
+            <div className="sky-view-standalone-panel">
+                <div className="sky-view-container">
+                    <SkyView 
+                        satellites={satData} 
+                        width={330} 
+                        height={330} 
+                    />
+                </div>
+            </div>
+        );
+    }
+
+  
     return (
         <div className={`map-pip-container ${isMaximized ? 'maximized' : ''}`}>
             {/* Primary View (Full-screen Overlay) - Always matches PiP content */}

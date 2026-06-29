@@ -13,6 +13,5 @@ contextBridge.exposeInMainWorld('api', {
     onResultsUpdate: (callback) => ipcRenderer.on('results-updated', (event, data) => callback(data)),
     onVerificationStarted: (callback) => ipcRenderer.on('verification-started', (event, data) => callback(data)),
     onVerificationComplete: (callback) => ipcRenderer.on('verification-complete', (event, data) => callback(data)),
-    onEngineLog: (callback) => ipcRenderer.on('engine-log', (event, data) => callback(data)),
-    createEmptyBinFile: () => ipcRenderer.invoke('create-empty-bin-file')
+    onEngineLog: (callback) => ipcRenderer.on('engine-log', (event, data) => callback(data))
 });

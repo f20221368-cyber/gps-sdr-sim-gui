@@ -11,6 +11,8 @@
 #include <unistd.h>
 #endif
 #include "gpssim.h"
+#include "tropo.h"
+//#include "nequick.h"
 
 int sinTable512[] = {
 	   2,   5,   8,  11,  14,  17,  20,  23,  26,  29,  32,  35,  38,  41,  44,  47,
@@ -1318,6 +1320,10 @@ void computeRange(range_t *rho, ephem_t eph, ionoutc_t *ionoutc, gpstime_t g, do
 	rho->iono_delay = ionosphericDelay(ionoutc, g, llh, rho->azel);
 	rho->range += rho->iono_delay;
 
+	// Add tropospheric delay
+	rho->tropo_delay = calculate_tropo_delay(rho->azel, llh, TROPO_SAASTAMOINEN);
+	rho->range += rho->tropo_delay;
+
 	return;
 }
 
@@ -2037,6 +2043,20 @@ int main(int argc, char *argv[])
 
 	fprintf(stderr, "xyz = %11.1f, %11.1f, %11.1f\n", xyz[0][0], xyz[0][1], xyz[0][2]);
 	fprintf(stderr, "llh = %11.6f, %11.6f, %11.1f\n", llh[0]*R2D, llh[1]*R2D, llh[2]);
+
+	/////////////////////////////////////////////////////////////
+	// For Nequick model
+	////////////////////////////////////////////////////////////
+
+	/*// Allocate space for our NeQuick grids in RAM
+	nequick_data_t global_nequick;
+
+	// Load the grids ONCE at boot up
+	printf("Initializing NeQuick Ionospheric Model Data...\n");
+	if (load_nequick_grids(&global_nequick, "data/modip.dat", "data") != 0) {
+		fprintf(stderr, "Fatal Error: Could not initialize NeQuick assets.\n");
+		return -1;
+	}*/
 
 	////////////////////////////////////////////////////////////
 	// Read ephemeris

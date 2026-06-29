@@ -1,3 +1,6 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES & CORE RESETS
+   ========================================================================== */
 :root {
   --primary-color: #3b82f6;
   --bg-color: #0f172a;
@@ -8,7 +11,7 @@
   --border-color: #374151;
   --accent-blue: #60a5fa;
   --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-  --radius: 8px; /* Sharper formal corners */
+  --radius: 8px;
 }
 
 body {
@@ -50,7 +53,10 @@ body {
   background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
 }
 
-/* Left Panel */
+
+/* ==========================================================================
+   2. REUSABLE CONTROL PANEL FORMS & INPUTS
+   ========================================================================== */
 .controls-panel {
   flex: 1;
   background-color: var(--panel-bg);
@@ -171,7 +177,32 @@ body {
   cursor: not-allowed;
 }
 
-/* Right Panel */
+.divider {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.code-block {
+  background: #000000;
+  color: #10b981;
+  padding: 1.5rem;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #1f2937;
+  white-space: pre-wrap;
+  word-break: break-all;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+
+/* ==========================================================================
+   3. DRAWER, SUGGESTIONS & MODALS
+   ========================================================================== */
 .map-container {
   position: fixed;
   bottom: 2rem;
@@ -235,33 +266,6 @@ body {
 .suggestions-list li:hover {
   background-color: #f8fafc;
   color: var(--primary-color);
-}
-
-@media (max-width: 768px) {
-  #root {
-    flex-direction: column;
-  }
-
-  .controls-panel {
-    flex: none;
-    height: 40%;
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .map-container {
-    height: 60%;
-  }
-}
-
-/* Simulation Control Styles */
-.divider {
-  border: 0;
-  height: 1px;
-  background: var(--border-color);
-  margin: 1.5rem 0;
-  width: 100%;
 }
 
 .drawer-content {
@@ -368,27 +372,13 @@ body {
   background: rgba(90, 141, 238, 0.1);
 }
 
-.code-block {
-    background: #000000;
-    color: #10b981; /* Green terminal style */
-    padding: 1.5rem;
-    border-radius: 6px;
-    font-family: 'Fira Code', monospace;
-    font-size: 0.85rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid #1f2937;
-    white-space: pre-wrap;
-    word-break: break-all;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-}
-
 .info-box {
-    background: rgba(59, 130, 246, 0.05);
-    border-left: 4px solid var(--primary-color);
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-    color: var(--text-muted);
+  background: rgba(59, 130, 246, 0.05);
+  border-left: 4px solid var(--primary-color);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
 }
 
 .btn-generate {
@@ -408,7 +398,6 @@ body {
   background-color: #4A7CDE;
 }
 
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -515,166 +504,162 @@ body {
   gap: 1rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
 
-/* Map PiP and Sky View - New Integrated Layout */
+/* ==========================================================================
+   4. ORIGINAL PICTURE-IN-PICTURE (MAPPIP) ENGINE
+   ========================================================================== */
 .map-pip-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none; /* Let clicks pass through to ControlPanel unless on the PiP */
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1000;
 }
 
 .primary-view {
-    display: none;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-/* Enable pointer events for maximized state */
 .map-pip-container.maximized {
-    pointer-events: auto;
-    z-index: 2000;
+  pointer-events: auto;
+  z-index: 2000;
 }
 
 .map-pip-container.maximized .primary-view {
-    display: block;
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(12px);
-    z-index: 2100;
+  display: block;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
+  z-index: 2100;
 }
 
 .base-frame {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .secondary-pip {
-    position: absolute;
-    bottom: 30px;
-    right: 30px;
-    width: 320px;
-    height: 320px;
-    background: #1a1a1a;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
-    overflow: hidden;
-    z-index: 1500;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 3px solid rgba(59, 130, 246, 0.5);
-    pointer-events: auto;
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  width: 320px;
+  height: 320px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  z-index: 1500;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 3px solid rgba(59, 130, 246, 0.5);
+  pointer-events: auto;
 }
 
 .secondary-pip:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 1), 0 0 10px rgba(59, 130, 246, 0.4);
+  border-color: #3b82f6;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 1), 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 .pip-frame {
-    width: 100%;
-    height: 100%;
-    position: relative;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .pip-label {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    background: rgba(59, 130, 246, 0.9);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 900;
-    pointer-events: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .sky-view-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #0f172a 0%, #000000 100%);
-    overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #0f172a 0%, #000000 100%);
+  overflow: hidden;
 }
 
 .sky-canvas {
-    max-width: 95%;
-    max-height: 95%;
+  max-width: 95%;
+  max-height: 95%;
 }
 
-
 .pip-controls {
-    position: absolute;
-    top: 30px; /* Moved to top-right to avoid dashboard overlap */
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    z-index: 2600;
-    pointer-events: auto;
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2600;
+  pointer-events: auto;
 }
 
 .pip-btn {
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(10px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    min-width: 140px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  min-width: 140px;
 }
 
 .pip-btn:hover {
-    background: #3b82f6;
-    border-color: #60a5fa;
-    transform: translateX(-5px);
+  background: #3b82f6;
+  border-color: #60a5fa;
+  transform: translateX(-5px);
 }
 
 .close-maximize {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    background: #ef4444;
-    border-color: #f87171;
-    z-index: 2500;
-    padding: 12px 24px;
-    font-size: 14px;
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: #ef4444;
+  border-color: #f87171;
+  z-index: 2500;
+  padding: 12px 24px;
+  font-size: 14px;
 }
 
 .close-maximize:hover {
-    background: #dc2626;
-    border-color: #ef4444;
+  background: #dc2626;
+  border-color: #ef4444;
 }
 
 
-/* Toast Notifications */
+/* ==========================================================================
+   5. ORIGINAL TOAST NOTIFICATIONS & UTILITIES
+   ========================================================================== */
 .toast-container {
   position: fixed;
   top: 2rem;
@@ -701,17 +686,9 @@ body {
   border: 1px solid var(--border-color);
 }
 
-.toast-info {
-  border-left-color: var(--primary-color);
-}
-
-.toast-success {
-  border-left-color: #10b981;
-}
-
-.toast-error {
-  border-left-color: #ef4444;
-}
+.toast-info { border-left-color: var(--primary-color); }
+.toast-success { border-left-color: #10b981; }
+.toast-error { border-left-color: #ef4444; }
 
 .toast-message {
   font-size: 0.875rem;
@@ -729,16 +706,408 @@ body {
 }
 
 @keyframes toastSlideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ==========================================================================
+   6. ORIGINAL STRUCTURAL CORE APPLICATION LAYOUTS
+   ========================================================================== */
+.sidebar-menu {
+  width: 80px;
+  background-color: #111622;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.sidebar-menu button {
+  padding: 20px 5px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-menu button:hover {
+  color: var(--text-color);
+  background-color: #162032;
+}
+
+.sidebar-menu button.active {
+  color: var(--accent-blue);
+  background-color: var(--panel-bg);
+  border-left: 3px solid var(--primary-color);
+}
+
+.main-content-window-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.vehicle-window-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.vehicle-workspace-panel {
+  flex: 1.2;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--panel-bg);
+  box-sizing: border-box;
+  padding: 1.5rem;
+}
+
+.vehicle-map-panel {
+  flex: 1;
+  height: 100%;
+  position: relative;
+}
+
+.window-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+.vehicle-map-panel .map-pip-container {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.vehicle-map-panel .secondary-pip {
+  position: relative !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.workspace-panel-left {
+  flex: 1.2;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  background-color: var(--panel-bg);
+}
+
+.vehicle-window-layout .workspace-panel-left {
+  overflow-y: auto !important;
+  border-right: 1px solid var(--border-color);
+}
+
+.output-dashboard-grid .workspace-panel-left {
+  overflow-y: auto;
+  border-right: 1px solid var(--border-color);
+}
+
+.output-dashboard-grid {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.vehicle-window-layout .workspace-panel-left {
+  overflow-y: auto !important;
+  border-right: 1px solid var(--border-color);
+  padding: 1rem;
+}
+
+.output-dashboard-grid .workspace-panel-left {
+  overflow-y: auto;
+  border-right: 1px solid var(--border-color);
+}
+
+.output-right-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0b0f17;
+}
+
+.output-right-top-pane {
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.output-right-bottom-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle, #111827 0%, #070a12 100%) !important;
+  overflow: hidden;
+}
+
+.pane-header {
+  background-color: #1a2234;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pane-placeholder-content {
+  padding: 1.2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.integrated-skyview-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+
+/* ==========================================================================
+   7. STANDALONE WIDGET ALIGNMENT RULES FOR FORCED SKYVIEW
+   ========================================================================== */
+.sky-view-standalone-panel {
+  width: 100% !important;
+  height: calc(100vh - 45px) !important; /* Uses full available panel workspace height */
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important; /* Safely anchors the widget to the right margin */
+  background: transparent !important;
+  box-sizing: border-box !important;
+  padding-right: 1rem !important; /* Breathing room from screen edge border */
+}
+
+.sky-view-standalone-panel .sky-view-container {
+  width: 330px !important;
+  height: 330px !important;
+  max-width: 330px !important;
+  max-height: 330px !important;
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sky-view-standalone-panel .sky-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ==========================================================================
+   8. VERTICAL SPLIT DASHBOARD LAYOUT STYLES
+   ========================================================================== */
+.split-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0b0f19;
+}
+
+/* Upper Configuration Block Stylesheet */
+.upper-pane {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 2px solid #222c3c;
+  overflow: hidden;
+  background-color: var(--panel-bg);
+}
+
+.control-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Force inner panel configurations to fill the layout cleanly */
+.control-wrapper .controls-panel {
+  height: auto !important;
+  min-height: 100%;
+  padding: 1.5rem !important;
+  background-color: transparent !important;
+}
+
+/* Lower Telemetry Row Viewports Stylesheet */
+.bottom-pane {
+  height: 50vh;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  background-color: #0c1017;
+}
+
+/* Left Column Tab List Selection Menu */
+.constellation-sidebar {
+  width: 140px;
+  background-color: #111622;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.constellation-tab-header {
+  background-color: #1a2234;
+  padding: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.constellation-list-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.telemetry-tab {
+  width: 100%;
+  padding: 12px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1c2635;
+  color: #a0aec0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.telemetry-tab:hover {
+  background-color: #182030;
+  color: white;
+}
+
+.telemetry-tab.active {
+  background-color: #1d2636;
+  color: var(--accent-blue);
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Colored Circular Tracking Status Indicators */
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.gps-dot { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
+.glonass-dot { background-color: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+.galileo-dot { background-color: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+.beidou-dot { background-color: #8b5cf6; box-shadow: 0 0 6px #8b5cf6; }
+.sbas-dot { background-color: #ec4899; box-shadow: 0 0 6px #ec4899; }
+.qzss-dot { background-color: #06b6d4; box-shadow: 0 0 6px #06b6d4; }
+.navic-dot { background-color: #f43f5e; box-shadow: 0 0 6px #f43f5e; }
+.custom-dot { background-color: #a855f7; box-shadow: 0 0 6px #a855f7; }
+
+/* Center Display Grid Block Styles for Signal Adjustments & Graphs */
+.rf-matrix-center {
+  flex: 2;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  background-color: #0a0d14;
+}
+
+.placeholder-bars {
+  flex: 1;
+  display: flex;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Right Circular Compass Skyview Radar Layout Blocks */
+.skyview-right {
+  flex: 1.2;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  background-color: #05070a;
+}
+
+.canvas-box {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Force canvas container adjustments to safely snap within boundaries */
+.canvas-box .map-pip-container,
+.canvas-box .secondary-pip,
+.canvas-box .sky-view-container {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   9. SPOOFERS WORKSPACE GLOBAL UTILITY ADDITIONS
+   ========================================================================== */
+.drawer-section select {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--panel-secondary); /* Matches neighboring text box values */
+  color: var(--text-color);                 /* Clean default application white text */
+  border: 1px solid var(--border-color);     /* Consistent panel wrapper stroke */
+  border-radius: var(--radius);              /* System standardized container rounding */
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.drawer-section select:focus {
+  border-color: var(--primary-color);        /* Glows bright blue when active */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
