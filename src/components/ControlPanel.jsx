@@ -23,6 +23,7 @@ const ControlPanel = ({
     hideExecutionSections = false, // New prop to conditionally hide execution and verification sections
     showOnlyExecution = false, // New prop to show only execution section with a simplified interface
     customOutputPath,
+    atmosphereSettings,
     
 }) => {
     
@@ -278,7 +279,9 @@ const ControlPanel = ({
                 mode,
                 motionFilePath: motionFile ? motionFile.path : null,
                 rinexFilePath: rinexFile ? rinexFile.path : null,
-                customOutputPath: customOutputPath
+                customOutputPath: customOutputPath,
+
+               atmosphereSettings: atmosphereSettings // Pass the atmosphere settings to the backend
             };
 
             console.log("[ControlPanel] Sending data to generate-gps:", data);
@@ -812,7 +815,7 @@ const ControlPanel = ({
                                                     );
                                                     setAddedSignals(revisedSignals);
                                                 } else {
-                                                    // ➕ CREATE MODE: Append a completely new entry profile onto your array state tracker
+                                                    // CREATE MODE: Append a completely new entry profile onto your array state tracker
                                                     setAddedSignals([...addedSignals, updatedSignalProfile]);
                                                 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import MapPip from './components/MapPip';
 import ControlPanel from './components/ControlPanel';
+import SettingsPanel from './components/SettingsPanel';
 
 
 function App() {
@@ -150,6 +151,14 @@ function App() {
     }
   }, [drawnPoints, addToast]);
 
+  // Global Atmosphere Settings State
+  const [atmosphereSettings, setAtmosphereSettings] = useState({
+    model: 0,          // 0 = NONE, 1 = SAASTAMOINEN, 2 = STANAG
+    pressure: 1013.25, // Default P (hPa)
+    temperature: 288.15, // Default T (Kelvin)
+    waterVapor: 11.0,  // Default e (hPa)
+  });
+
   return (
     <div className="layout">
       {/* Side View Navigation Control */}
@@ -211,6 +220,7 @@ function App() {
           hideExecutionSections={false}
           showOnlyExecution={true}
           customOutputPath={outputBinPath}
+          atmosphereSettings={atmosphereSettings} // Pass the atmosphere settings to the backend
         />
       </div>
     </div>
@@ -355,6 +365,7 @@ function App() {
                 setRinexPath={setRinexPath}
                 hideExecutionSections={true}
                 customOutputPath={outputBinPath}
+                atmosphereSettings={atmosphereSettings} // Pass the atmosphere settings to the backend
               />
             </div>
             
@@ -375,10 +386,14 @@ function App() {
           </div>
         
 
+        {/* Global Configuration Panel View Component Wrapper */}
         {activeWindow === 'SETTINGS' && (
-          <div className="window-placeholder">
-            <h3>Global Configuration Panel</h3>
-          </div>
+        <div className="window-placeholder full-settings-view">
+          <SettingsPanel 
+            settings={atmosphereSettings} 
+            setSettings={setAtmosphereSettings} 
+          />
+        </div>
         )}
       </div>
 

@@ -184,6 +184,19 @@ ipcMain.handle('generate-gps', async (event, data) => {
         '-d', duration,
         '-o', outputFile
     ];
+     // --- Added Tropospheric Flag
+if (data.atmosphereSettings && data.atmosphereSettings.model !== undefined && data.atmosphereSettings.model !== null) {
+    const { model, pressure, temperature, waterVapor } = data.atmosphereSettings;
+
+    args.push('-M', model.toString()); // Pass 0, 1, or 2 to getopt
+
+    // If Saastamoinen (Model 1) is active, push environmental parameter modifiers
+    if (Number(model) === 1) {
+        if (pressure) args.push('-P', pressure.toString());
+        if (temperature) args.push('-K', temperature.toString());
+        if (waterVapor) args.push('-W', waterVapor.toString());
+    }
+}
 
     if (mode === 'dynamic') {
         const motionFile = motionFilePath || path.join(projectTempDir, 'trajectory.csv');

@@ -156,6 +156,7 @@ typedef struct
 	double d; // geometric distance
 	double azel[2];
 	double iono_delay;
+	double tropo_delay;
 } range_t;
 
 /*! \brief Structure representing a Channel */

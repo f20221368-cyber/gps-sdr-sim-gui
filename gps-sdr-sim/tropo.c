@@ -120,6 +120,26 @@ double interpolate_delta_R(double *azel, double *llh)
     return (1.0 - t_z) * r1 + t_z * r2;
 }
 
+// --- Internal State Variables (Saved from GUI via gpssim.c) ---
+static tropo_model_t current_model = TROPO_NONE;
+static double gui_P = 1013.25; // Default standard pressure
+static double gui_T = 288.15;  // Default standard temperature (Kelvin)
+static double gui_e = 11.0;    // Default partial water vapor pressure
+
+
+// --- Setters called by gpssim.c at startup ---
+void set_tropo_environmental_inputs(double P, double T, double e) 
+{
+    gui_P = P;
+    gui_T = T;
+    gui_e = e;
+}
+
+void set_tropo_model(tropo_model_t model) 
+{
+    current_model = model;
+}
+
 /**
  * Calculates total tropospheric path delay using the modified Saastamoinen equation.
  * * @param zenith_angle_deg Zenith angle of the satellite in degrees (90 - elevation)
@@ -129,9 +149,8 @@ double interpolate_delta_R(double *azel, double *llh)
  * @param height_km        Receiver height above sea level in kilometers
  * @return                 Total tropospheric path delay in meters
  */
-double calculate_saastamoinen_delay(double *azel, double *llh, double P, double T, double e) {
-    
-	
+double calculate_saastamoinen_delay(double *azel, double *llh) 
+{
     double height_km = llh[2] / 1000.0; // Convert altitude from meters to kilometers
 	double z= (M_PI/2.0) - (azel[1]); // Convert elevation to zenith angle
 	if (azel[1] < 15.0 * (M_PI / 180.0)) 
@@ -150,11 +169,11 @@ double calculate_saastamoinen_delay(double *azel, double *llh, double P, double 
     }
 
     // 3. Interpolate the B coefficient from the height table,Compute delta_R using bilinear interpolation
-    double B = interpolate_B_coefficient(llh);
-    double delta_R = interpolate_delta_R(rho->azel, llh);
+    double B = interpolate_B(llh);
+    double delta_R = interpolate_delta_R(azel, llh);
 
     // 4. Evaluate the bracketed core expression: [P + (1255/T + 0.05)*e - B*tan^2(z)]
-    double bracket_term = P + ((1255.0 / T) + 0.05) * e - (B * tan_z * tan_z);
+    double bracket_term = gui_P + ((1255.0 / gui_T) + 0.05) * gui_e - (B * tan_z * tan_z);
 
     // 5. Combine everything into the final path delay delta
     double saas_delta = (2.277e-3 / cos_z) * bracket_term + delta_R;
@@ -193,15 +212,15 @@ double calculate_stanag_delay(double *azel, double *llh) {
     return stanag_delay;
 }
 
-double calculate_tropo_delay(double *azel, double *llh, tropo_model_t model) 
+double calculate_tropo_delay(double *azel, double *llh) 
 {
-    switch (model) 
+    switch (current_model) 
     {
     case TROPO_SAASTAMOINEN:   // Case 1
-        return calculate_saastamoinen_delay(double *azel, double *llh);
+        return calculate_saastamoinen_delay(azel, llh);
 
     case TROPO_STANAG:         // Case 2
-        return calculate_stanag_delay(double *azel, double *llh);
+        return calculate_stanag_delay(azel, llh);
 
     case TROPO_NONE:           // Case 0
     default:

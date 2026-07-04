@@ -184,6 +184,17 @@ ipcMain.handle('generate-gps', async (event, data) => {
         '-d', duration,
         '-o', outputFile
     ];
+     // --- Added Tropospheric Flag
+    if (data.tropoModel !== undefined && data.tropoModel !== null) {
+        args.push('-M', data.tropoModel.toString()); // Pass 0, 1, or 2 to getopt
+
+        // If Saastamoinen (Model 1) is active, push environmental parameter modifiers
+        if (Number(data.tropoModel) === 1) {
+            if (data.pressure) args.push('-P', data.pressure.toString());
+            if (data.temperature) args.push('-K', data.temperature.toString());
+            if (data.waterVapor) args.push('-W', data.waterVapor.toString());
+        }
+    }
 
     if (mode === 'dynamic') {
         const motionFile = motionFilePath || path.join(projectTempDir, 'trajectory.csv');
@@ -223,21 +234,46 @@ ipcMain.handle('generate-gps', async (event, data) => {
             
             console.log(`Generated binary successfully at ${outputFile}.`);
 
+             // This looks for the custom file destination path passed down from your UI state
+             const customTargetFilePath = data.customOutputPath; 
+
+            if (customTargetFilePath && fs.existsSync(customTargetFilePath)) 
+            {
+               try {
+              // Duplicates temp/gpssim.bin over to your chosen custom binary file destination
+              fs.copyFileSync(outputFile, customTargetFilePath);
+              console.log(`[Generate-GPS] Duplicated temp file over to custom destination: ${customTargetFilePath}`);
+              } catch (copyErr) {
+              console.error(`[Generate-GPS] Failed to duplicate file: ${copyErr.message}`);
+              }
+            } 
+            else 
+            {
+             console.log("[Generate-GPS] No custom path staged or file missing. Kept in temp/ directory only.");
+            }                         
+
             try {
                 if (action === 'save') {
-                    // Let user choose where to save
-                    const { canceled, filePath } = await dialog.showSaveDialog({
-                        title: 'Save GPS Simulation File',
-                        defaultPath: 'gpssim.bin',
-                        filters: [{ name: 'Binary Files', extensions: ['bin'] }]
-                    });
+                    // Look to see if the frontend passed down a pre-selected target filepath
+                    // (e.g., the empty bin file path created or selected by the user beforehand)
+                const customTargetFilePath = data.customOutputPath;
 
-                    if (!canceled && filePath) {
-                        fs.copyFileSync(outputFile, filePath);
-                        return resolve({ success: true, message: `File saved to ${filePath}` });
+                  if (customTargetFilePath && fs.existsSync(customTargetFilePath)) {
+                     try {
+                     fs.copyFileSync(outputFile, customTargetFilePath);
+                     console.log(`[Generate-GPS] Success! Duplicated temp cache straight over to: ${customTargetFilePath}`);
+                     
+                    } catch (copyErr) {
+                      console.error(`[Generate-GPS] File copy routine failed: ${copyErr.message}`);
+                      }
+                  
                     } else {
-                        return resolve({ success: true, message: `Generation complete, save canceled.` });
+                    console.log("[Generate-GPS] No active pre-created output target path provided from dashboard layout.");
                     }
+
+                   return resolve({ success: true, stdout });
+
+                 
                 } else if (action === 'transmit-hackrf') {
                     // Trigger MATLAB Receiver instead of HackRF
                     const matlabDir = path.join(__dirname, '../GPS_L1CA/GPS_L1CA');
@@ -691,6 +727,7 @@ ipcMain.handle('get-sat-visibility', async (event, data) => {
     }
 });
 
+/*Spawns a native Windows Save Dialog filtered specifically for `.bin` files.*/
 ipcMain.handle('create-empty-bin-file', async () => {
     const { canceled, filePath } = await dialog.showSaveDialog({
         title: 'Select Output Binary Location',
@@ -713,3 +750,4 @@ ipcMain.handle('create-empty-bin-file', async () => {
         throw error;
     }
 });
+

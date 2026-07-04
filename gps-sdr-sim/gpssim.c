@@ -14,6 +14,12 @@
 #include "tropo.h"
 //#include "nequick.h"
 
+// Set defaults here in case the user omits flags
+int g_tropo_model = 0;       // 0 = None, 1 = Saastamoinen, 2 = STANAG
+double g_tropo_P = 1013.25; 
+double g_tropo_T = 288.15;
+double g_tropo_e = 11.0;
+
 int sinTable512[] = {
 	   2,   5,   8,  11,  14,  17,  20,  23,  26,  29,  32,  35,  38,  41,  44,  47,
 	  50,  53,  56,  59,  62,  65,  68,  71,  74,  77,  80,  83,  86,  89,  91,  94,
@@ -1321,7 +1327,7 @@ void computeRange(range_t *rho, ephem_t eph, ionoutc_t *ionoutc, gpstime_t g, do
 	rho->range += rho->iono_delay;
 
 	// Add tropospheric delay
-	rho->tropo_delay = calculate_tropo_delay(rho->azel, llh, TROPO_SAASTAMOINEN);
+	rho->tropo_delay = calculate_tropo_delay(rho->azel, llh);
 	rho->range += rho->tropo_delay;
 
 	return;
@@ -1824,7 +1830,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	while ((result=getopt(argc,argv,"e:u:x:g:c:l:o:s:b:L:T:t:d:ipvS:"))!=-1)
+	while ((result=getopt(argc,argv,"e:u:x:g:c:l:o:s:b:L:T:t:d:ipvS:M:P:K:W:"))!=-1)
 	{
 		switch (result)
 		{
@@ -1958,6 +1964,18 @@ int main(int argc, char *argv[])
 		case 'v':
 			verb = TRUE;
 			break;
+		case 'M':        // Tropospheric model selection
+            g_tropo_model = atoi(optarg);
+            break;
+        case 'P':       
+            g_tropo_P = atof(optarg);
+            break;
+        case 'K':
+            g_tropo_T = atof(optarg);
+            break;
+        case 'W':
+            g_tropo_e = atof(optarg);
+            break;
 		case ':':
 		case '?':
 			usage();
@@ -1966,6 +1984,29 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
+
+	set_tropo_model((tropo_model_t)g_tropo_model);
+    set_tropo_environmental_inputs(g_tropo_P, g_tropo_T, g_tropo_e);
+
+	printf("[Engine] Tropospheric Model: %d (", g_tropo_model);
+    switch (g_tropo_model) 
+    {
+        case TROPO_SAASTAMOINEN: // Equal to 1
+            printf("Saastamoinen)\n");
+            printf("[Engine] Environmental Inputs: Pressure=%.2f hPa, Temp=%.2f K, WaterVapor=%.2f hPa\n", 
+                   g_tropo_P, g_tropo_T, g_tropo_e);
+            break;
+            
+        case TROPO_STANAG:       // Equal to 2
+            printf("STANAG)\n");
+            break;
+            
+        case TROPO_NONE:         // Equal to 0
+        default:
+            printf("None)\n");
+            break;
+    }
+    fflush(stdout);
 
 	if (navfile[0]==0)
 	{
