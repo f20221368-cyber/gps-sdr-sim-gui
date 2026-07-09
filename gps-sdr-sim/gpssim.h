@@ -185,4 +185,16 @@ typedef struct
 	range_t rho0;
 } channel_t;
 
+typedef struct
+{
+	int enable; // Enable/disable meaconing attack;
+	double meaconing_delay_s; // Delay in seconds for meaconing attack
+	double meaconing_delay_m; // Delay in meters for meaconing attack
+} meaconing_attack_t;
+
+typedef struct
+{
+	int enable;
+} adversarial_attack_t;
+
 #endif

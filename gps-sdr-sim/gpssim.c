@@ -1264,13 +1264,29 @@ double ionosphericDelay(const ionoutc_t *ionoutc, gpstime_t g, double *llh, doub
 	return (iono_delay);
 }
 
+double meaconing_attack_delay(meaconing_attack_t* meaconing_attack)
+{
+	double meaconing_delay_range = 0.0;
+
+	if(meaconing_attack->enable==FALSE) 
+	{
+		return(0.0);
+	}
+	
+	meaconing_delay_range = SPEED_OF_LIGHT * (meaconing_attack->meaconing_delay_s);
+	meaconing_attack->meaconing_delay_m=meaconing_delay_range;
+	
+	return(meaconing_delay_range);
+	
+}
+
 /*! \brief Compute range between a satellite and the receiver
  *  \param[out] rho The computed range
  *  \param[in] eph Ephemeris data of the satellite
  *  \param[in] g GPS time at time of receiving the signal
  *  \param[in] xyz position of the receiver
  */
-void computeRange(range_t *rho, ephem_t eph, ionoutc_t *ionoutc, gpstime_t g, double xyz[])
+void computeRange(range_t *rho, ephem_t eph, ionoutc_t *ionoutc, gpstime_t g, double xyz[],meaconing_attack_t* meaconing_attack)
 {
 	double pos[3],vel[3],clk[2];
 	double los[3];
@@ -1329,6 +1345,11 @@ void computeRange(range_t *rho, ephem_t eph, ionoutc_t *ionoutc, gpstime_t g, do
 	// Add tropospheric delay
 	rho->tropo_delay = calculate_tropo_delay(rho->azel, llh);
 	rho->range += rho->tropo_delay;
+
+	// Add meaconing attack delay
+	double meaconing_delay_range = meaconing_attack_delay(meaconing_attack);
+	rho->range += meaconing_delay_range;
+	
 
 	return;
 }
@@ -1636,7 +1657,7 @@ int checkSatVisibility(ephem_t eph, gpstime_t g, double *xyz, double elvMask, do
 	return (0); // Invisible
 }
 
-int allocateChannel(channel_t *chan, ephem_t *eph, ionoutc_t ionoutc, gpstime_t grx, double *xyz, double elvMask)
+int allocateChannel(channel_t *chan, ephem_t *eph, ionoutc_t ionoutc, gpstime_t grx, double *xyz, double elvMask, meaconing_attack_t* meaconing_attack)
 {
 	int nsat=0;
 	int i,sv;
@@ -1675,13 +1696,13 @@ int allocateChannel(channel_t *chan, ephem_t *eph, ionoutc_t ionoutc, gpstime_t 
 						generateNavMsg(grx, &chan[i], 1);
 
 						// Initialize pseudorange
-						computeRange(&rho, eph[sv], &ionoutc, grx, xyz);
+						computeRange(&rho, eph[sv], &ionoutc, grx, xyz, meaconing_attack);
 						chan[i].rho0 = rho;
 
 						// Initialize carrier phase
 						r_xyz = rho.range;
 
-						computeRange(&rho, eph[sv], &ionoutc, grx, ref);
+						computeRange(&rho, eph[sv], &ionoutc, grx, ref, meaconing_attack);
 						r_ref = rho.range;
 
 						phase_ini = 0.0; // TODO: Must initialize properly
@@ -1807,6 +1828,15 @@ int main(int argc, char *argv[])
 	ionoutc_t ionoutc;
 	int path_loss_enable = TRUE;
 
+	meaconing_attack_t meaconing_attack;
+	adversarial_attack_t adversarial_attack;
+	
+	
+	double false_llh[3]; // Your desired fake target location
+	double false_xyz[3];
+	//double false_vel[3] = { 0.0, 0.0, 0.0 }; // Stationary target simulation
+
+
 	////////////////////////////////////////////////////////////
 	// Read options
 	////////////////////////////////////////////////////////////
@@ -1823,6 +1853,9 @@ int main(int argc, char *argv[])
 	verb = FALSE;
 	ionoutc.enable = TRUE;
 	ionoutc.leapen = FALSE;
+	meaconing_attack.enable = FALSE;
+	adversarial_attack.enable = FALSE;
+	meaconing_attack.meaconing_delay_s = 0.0;
 
 	if (argc<3)
 	{
@@ -1830,7 +1863,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	while ((result=getopt(argc,argv,"e:u:x:g:c:l:o:s:b:L:T:t:d:ipvS:M:P:K:W:"))!=-1)
+	while ((result=getopt(argc,argv,"e:u:x:g:c:l:o:s:b:L:T:t:d:ipvS:M:P:K:W:A:"))!=-1)
 	{
 		switch (result)
 		{
@@ -1975,6 +2008,54 @@ int main(int argc, char *argv[])
             break;
         case 'W':
             g_tropo_e = atof(optarg);
+            break;
+
+		case 'A':
+            {
+                char attack_mode[32] = {0};
+                
+                // Read the first token up to the comma to identify the mode
+                if (sscanf(optarg, "%31[^,]", attack_mode) == 1)
+                {
+                    if (strcmp(attack_mode, "meaconing") == 0)
+                    {
+                        meaconing_attack.enable = TRUE;
+						fprintf(stderr, "Meaconing attack mode enabled.\n");
+                        
+                        // Parse the secondary float argument after the comma
+                        if (sscanf(optarg, "%*[^,],%lf", &meaconing_attack.meaconing_delay_s) != 1)
+                        {
+                            fprintf(stderr, "ERROR: Missing delay value for meaconing attack. Format: -A meaconing,delay_s\n");
+                            exit(1);
+                        }
+                    }
+                    else if (strcmp(attack_mode, "adversarial") == 0)
+                    {
+                        adversarial_attack.enable = TRUE;
+						fprintf(stderr, "Adversarial attack mode enabled.\n");
+                        
+                        // Parse lat, long, height after the comma
+                        if (sscanf(optarg, "%*[^,],%lf,%lf,%lf", 
+                                   &false_llh[0], 
+                                   &false_llh[1], 
+                                   &false_llh[2]) != 3)
+                        {
+                            fprintf(stderr, "ERROR: Invalid parameters for adversarial attack. Format: -A adversarial,lat,lon,height\n");
+                            exit(1);
+                        }
+                        
+                        // Convert degrees to radians for consistency with gps-sdr-sim math rules
+                        false_llh[0] /= R2D;
+                        false_llh[1] /= R2D;
+						llh2xyz(false_llh, false_xyz); // Convert to ECEF coordinates
+                    }
+                    else
+                    {
+                        fprintf(stderr, "ERROR: Unknown attack mode '%s'. Use 'meaconing' or 'adversarial'.\n", attack_mode);
+                        exit(1);
+                    }
+                }
+            }
             break;
 		case ':':
 		case '?':
@@ -2342,13 +2423,13 @@ int main(int argc, char *argv[])
 	grx = incGpsTime(g0, 0.0);
 
 	// Allocate visible satellites
-	allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[0], elvmask);
+	allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[0], elvmask, &meaconing_attack);
 
 	for(i=0; i<MAX_CHAN; i++)
 	{
 		if (chan[i].prn>0)
-			fprintf(stderr, "%02d %6.1f %5.1f %11.1f %5.1f\n", chan[i].prn,
-				chan[i].azel[0]*R2D, chan[i].azel[1]*R2D, chan[i].rho0.d, chan[i].rho0.iono_delay);
+			fprintf(stderr, "%02d %6.1f %5.1f %11.1f %5.1f %11.1f\n", chan[i].prn,
+				chan[i].azel[0]*R2D, chan[i].azel[1]*R2D, chan[i].rho0.d, chan[i].rho0.iono_delay,meaconing_attack.meaconing_delay_m);
 	}
 
 	////////////////////////////////////////////////////////////
@@ -2357,6 +2438,83 @@ int main(int argc, char *argv[])
 
 	for (i=0; i<37; i++)
 		ant_pat[i] = pow(10.0, -ant_pat_db[i]/20.0);
+
+		
+	////////////////////////////////////////////////////////////
+	// Generate array of visible satellites from the FAKE location
+	////////////////////////////////////////////////////////////
+
+	
+	int fakelocchan[MAX_CHAN];
+	for (int c = 0; c < MAX_CHAN; c++) 
+	{
+		fakelocchan[c] = 0; // Initialize all slots to empty/0
+	}
+
+	int f_count = 0;
+	double fake_azel[2]; // Local array to hold the output azimuth and elevation
+
+	// Scan all available PRN indices (0 to MAX_SAT-1)
+	for (int fsv = 0; fsv < MAX_SAT; fsv++) 
+	{
+		// Step 1: Check if ephemeris data for this satellite is valid
+		if (eph[ieph][fsv].vflg == 1) 
+		{
+			// Step 2: Call checkSatVisibility using your exact parameter rules:
+			// eph[ieph][fsv] -> passed by value
+			// grx            -> passed by value
+			// false_xyz      -> passed as pointer (array name acts as pointer)
+			// elvmask        -> passed by value
+			// fake_azel      -> passed as pointer to catch the outputs
+			if (checkSatVisibility(eph[ieph][fsv], grx, false_xyz, elvmask, fake_azel)) 
+			{
+				if (f_count < MAX_CHAN) 
+				{
+					fakelocchan[f_count] = fsv + 1; // Store real PRN (Index + 1)
+					f_count++;
+				}
+			}
+		}
+	}
+
+	for (i=0; i<MAX_CHAN; i++)
+		{
+			if (chan[i].prn>0)
+			{
+				// Refresh code phase and data bit counters
+				range_t rho;
+				sv = chan[i].prn-1;
+
+				if(adversarial_attack.enable==TRUE)
+				{
+					int current_prn = chan[i].prn;
+					int found_in_fake = 0;
+
+					// Check if current_prn (x) exists in our fakelocchan array
+					for (int k = 0; k < MAX_CHAN; k++) 
+					{
+						if (fakelocchan[k] == current_prn) 
+						{
+							found_in_fake = 1; // It matches! Visible to both true and fake positions.
+							fprintf(stderr, "[Adversarial Attack] PRN %d is visible from the fake location.\n", current_prn);
+							break;
+						}
+					}
+					
+					if (found_in_fake) 
+					{
+						
+						// If the satellite is visible from the fake location, compute range using the fake location
+					    computeRange(&rho, eph[ieph][sv], &ionoutc, grx, false_xyz, &meaconing_attack);
+						chan[i].rho0=rho;
+						chan[i].azel[0] = rho.azel[0];
+				        chan[i].azel[1] = rho.azel[1];
+						
+					}
+					
+				}
+			}
+		}		
 
 	////////////////////////////////////////////////////////////
 	// Generate baseband signals
@@ -2377,11 +2535,45 @@ int main(int argc, char *argv[])
 				range_t rho;
 				sv = chan[i].prn-1;
 
+				if(adversarial_attack.enable==TRUE)
+				{
+					int current_prn = chan[i].prn;
+					int found_in_fake = 0;
+
+					// Check if current_prn (x) exists in our fakelocchan array
+					for (int k = 0; k < MAX_CHAN; k++) 
+					{
+						if (fakelocchan[k] == current_prn) 
+						{
+							found_in_fake = 1; // It matches! Visible to both true and fake positions.
+							break;
+						}
+					}
+					
+					if (found_in_fake) 
+					{
+						// If the satellite is visible from the fake location, compute range using the fake location
+					    computeRange(&rho, eph[ieph][sv], &ionoutc, grx, false_xyz, &meaconing_attack);
+					}
+					else 
+					{
+						// If the satellite is NOT visible from the fake location, compute range using the true location
+					    if (!staticLocationMode)
+							computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[iumd], &meaconing_attack);
+						else
+							computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[0], &meaconing_attack);
+					}
+				}
+
+		     	else
+				{
 				// Current pseudorange
 				if (!staticLocationMode)
-					computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[iumd]);
+					computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[iumd], &meaconing_attack);
 				else
-					computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[0]);
+					computeRange(&rho, eph[ieph][sv], &ionoutc, grx, xyz[0], &meaconing_attack);
+
+				}
 
 				chan[i].azel[0] = rho.azel[0];
 				chan[i].azel[1] = rho.azel[1];
@@ -2549,9 +2741,9 @@ int main(int argc, char *argv[])
 
 			// Update channel allocation
 			if (!staticLocationMode)
-				allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[iumd], elvmask);
+				allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[iumd], elvmask, &meaconing_attack);
 			else
-				allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[0], elvmask);
+				allocateChannel(chan, eph[ieph], ionoutc, grx, xyz[0], elvmask, &meaconing_attack);
 
 			// Show details about simulated channels
 			if (verb==TRUE)
